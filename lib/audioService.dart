@@ -12,7 +12,42 @@ class MyAudioService extends StatefulWidget {
 
 class _MyAudioServiceState extends State<MyAudioService> {
 
-  var audioManagerInstance = AudioManager.instance;
+  final AudioManager audioManagerInstance = AudioManager.instance;
+  bool isPlaying = false;
+
+  @override
+  void initState(){
+    super.initState();
+    _setupAudio();
+  }
+
+  void _setupAudio () {
+    audioManagerInstance.onEvents((events, args) {
+      if (events == AudioManagerEvents.playstatus) {
+        setState(() {
+          isPlaying = args;
+        });
+      } else if (events == AudioManagerEvents.error) {
+        print("Audio error: $args");
+      }
+    }
+    );
+  }
+
+  void _playAudio(){
+    audioManagerInstance
+        .start(
+        "assets/Zawjaty.mp3",
+        "Zawjati",
+        auto: true,
+        desc: "My Wife Nasheed",
+        cover: "assets/zawjati.jpeg"
+    ).then((result) {
+      if (result != null) {
+        print("Audio start error: $result");
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,30 +57,29 @@ class _MyAudioServiceState extends State<MyAudioService> {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.all(4.0),
-              child: Text("My Audio Service App")
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: _playAudio,
+                child: Container(
+                  padding: const EdgeInsets.all(16.0),
+                  color: Colors.red,
+                  child: const Icon(
+                      Icons.play_circle_outline_outlined,
+                    color: Colors.black,
+                    size: 50.0,
+                  ),
+                ),
               ),
-          ],
+              const SizedBox(height: 20,),
+              Text(isPlaying ? "Playing" : "paused"),
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          audioManagerInstance
-              .start(
-              "assets/Zawjaty.mp3",
-              //"https://www.deezer.com/en/track/32759531"
-              "Zawjati",
-              desc: "My Wife Nasheed",
-              cover: "assets/zawjati.jpeg"
-          ).then((err) {
-            print(err);
-          });
-        },
-        child: Icon(Icons.play_circle_outline_outlined),
-      ),
+      /*floatingActionButton: FloatingActionButton(
+        onPressed: _playAudio,
+        child: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
+      ),*/
     );
   }
 }
